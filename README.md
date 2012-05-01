@@ -1,4 +1,4 @@
 qvideocube
 ==========
 
-Display video files on a rotating cube
+Videos on a moving cube.
