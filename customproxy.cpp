@@ -3,13 +3,15 @@
 #include <QtGui>
 
 CustomProxy::CustomProxy(QGraphicsItem *parent, Qt::WindowFlags wFlags)
-    : QGraphicsProxyWidget(parent, wFlags)
+    : QGraphicsProxyWidget(parent, wFlags),
+      mXAxis(0),
+      mYAxis(0),
+      mScale(1),
+      mPos(0,0)
 {
     timeLine = new QTimeLine(250, this);
-    connect(timeLine, SIGNAL(valueChanged(qreal)),
-            this, SLOT(updateStep(qreal)));
-    connect(timeLine, SIGNAL(finished()),
-            this, SLOT(resetZValue()));
+    connect(timeLine, SIGNAL(valueChanged(qreal)), this, SLOT(updateStep(qreal)));
+    connect(timeLine, SIGNAL(finished()), this, SLOT(resetZValue()));
 
     //we never cache the video
     setCacheMode(NoCache);
@@ -23,7 +25,7 @@ QRectF CustomProxy::boundingRect() const
 void CustomProxy::paintWindowFrame(QPainter *painter, const QStyleOptionGraphicsItem *option,
                                    QWidget *widget)
 {
-    QRectF br = boundingRect();
+    /*QRectF br = boundingRect();
     painter->setPen(Qt::NoPen);
     painter->setBrush(QColor(0, 0, 0, 128));
     painter->drawPolygon(QPolygonF(br.adjusted(10, 10, 10, 10)).intersected(br));
@@ -41,7 +43,7 @@ void CustomProxy::paintWindowFrame(QPainter *painter, const QStyleOptionGraphics
     painter->drawText( text, mTitle, QTextOption(Qt::AlignCenter) );
     painter->drawRect( text );
 
-    QGraphicsProxyWidget::paintWindowFrame(painter, option, widget);
+    QGraphicsProxyWidget::paintWindowFrame(painter, option, widget);*/
 }
 
 void CustomProxy::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
@@ -69,18 +71,27 @@ void CustomProxy::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     emit focusChanged( true );
     //qDebug() << mTitle << "focusChanged( false )";
 }
-        
+
 void CustomProxy::updateStep(qreal step)
 {
+
     QRectF r = boundingRect();
-    ///widget()->setWindowOpacity(1. - step/3.);
-    setTransform(QTransform()
+
+    /*setTransform(QTransform()
                  .translate(r.width() / 2, r.height() / 2)
-                 .rotate(step * 30, Qt::XAxis)
-                 .rotate(step * 10, Qt::YAxis)
-                 .rotate(step * 5, Qt::ZAxis)
-                 .scale(1 + step, 1 + step)
-                 .translate(-r.width() / 2, -r.height() / 2));
+                 .translate(-900 * qSin(step * M_PI_4), 0.0)
+                 .rotate(step * 45, Qt::YAxis)
+                 .scale(1.0/(1.0 + qCos((1.-step)*M_PI_4)*0.2), 1.0/(1.0 + qCos((1.-step)*M_PI_4)*0.2))
+                 .translate(-r.width() / 2, -r.height() / 2));*/
+
+    setTransform(QTransform()
+                    .translate( r.width() / 2, r.height() / 2 )
+                    .translate( step * mPos.x(), step * mPos.y() )
+                    .rotate( step * mYAxis, Qt::YAxis )
+                    .rotate( step * mXAxis, Qt::XAxis )
+                    .translate(-r.width() / 2, -r.height() / 2)
+                 );
+
 }
 
 void CustomProxy::resetZValue()
